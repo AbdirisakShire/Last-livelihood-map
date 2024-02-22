@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script><script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/Africa_0.js"></script>
+        <script src="data/Regional_boundary_1.js"></script>
+        <script src="data/SUMofprecipitationfrom2004to2023_2.js"></script>
+        <script src="data/PuntlandRegions_3.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[6.508934781641413,44.384265997803936],[11.89314222727671,54.63326322961325]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        document.querySelector(".leaflet-popup-pane").addEventListener("load", function(event) {
+          var tagName = event.target.tagName,
+            popup = map._popup;
+          // Also check if flag is already set.
+          if (tagName === "IMG" && popup && !popup._updated) {
+            popup._updated = true; // Set flag to prevent looping.
+            popup.update();
+          }
+        }, true);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        function pop_Africa_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F_CODE'] !== null ? autolinker.link(feature.properties['F_CODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NAM'] !== null ? autolinker.link(feature.properties['NAM'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NA2'] !== null ? autolinker.link(feature.properties['NA2'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NA2_DESCRI'] !== null ? autolinker.link(feature.properties['NA2_DESCRI'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NA3'] !== null ? autolinker.link(feature.properties['NA3'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NA3_DESCRI'] !== null ? autolinker.link(feature.properties['NA3_DESCRI'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['AREA'] !== null ? autolinker.link(feature.properties['AREA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PERIMETER'] !== null ? autolinker.link(feature.properties['PERIMETER'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['WBFPATHLK'] !== null ? autolinker.link(feature.properties['WBFPATHLK'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ClipNumber'] !== null ? autolinker.link(feature.properties['ClipNumber'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_Africa_0_0() {
+            return {
+                pane: 'pane_Africa_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(178,223,138,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Africa_0');
+        map.getPane('pane_Africa_0').style.zIndex = 400;
+        map.getPane('pane_Africa_0').style['mix-blend-mode'] = 'normal';
+        var layer_Africa_0 = new L.geoJson(json_Africa_0, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Africa_0',
+            layerName: 'layer_Africa_0',
+            pane: 'pane_Africa_0',
+            onEachFeature: pop_Africa_0,
+            style: style_Africa_0_0,
+        });
+        bounds_group.addLayer(layer_Africa_0);
+        map.addLayer(layer_Africa_0);
+        function pop_Regional_boundary_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['REG_NAME'] !== null ? autolinker.link(feature.properties['REG_NAME'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Area_sqKm'] !== null ? autolinker.link(feature.properties['Area_sqKm'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_Regional_boundary_1_0() {
+            return {
+                pane: 'pane_Regional_boundary_1',
+                opacity: 1,
+                color: 'rgba(0,71,223,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(205,241,214,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Regional_boundary_1');
+        map.getPane('pane_Regional_boundary_1').style.zIndex = 401;
+        map.getPane('pane_Regional_boundary_1').style['mix-blend-mode'] = 'normal';
+        var layer_Regional_boundary_1 = new L.geoJson(json_Regional_boundary_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Regional_boundary_1',
+            layerName: 'layer_Regional_boundary_1',
+            pane: 'pane_Regional_boundary_1',
+            onEachFeature: pop_Regional_boundary_1,
+            style: style_Regional_boundary_1_0,
+        });
+        bounds_group.addLayer(layer_Regional_boundary_1);
+        map.addLayer(layer_Regional_boundary_1);
+        function pop_SUMofprecipitationfrom2004to2023_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id'] !== null ? autolinker.link(feature.properties['Id'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['gridcode'] !== null ? autolinker.link(feature.properties['gridcode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_SUMofprecipitationfrom2004to2023_2_0(feature) {
+            switch(String(feature.properties['gridcode'])) {
+                case '1':
+                    return {
+                pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(27,51,204,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '2':
+                    return {
+                pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(33,164,97,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '3':
+                    return {
+                pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(35,231,24,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '4':
+                    return {
+                pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(194,140,61,1.0)',
+                interactive: false,
+            }
+                    break;
+                case '5':
+                    return {
+                pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(173,53,9,1.0)',
+                interactive: false,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_SUMofprecipitationfrom2004to2023_2');
+        map.getPane('pane_SUMofprecipitationfrom2004to2023_2').style.zIndex = 402;
+        map.getPane('pane_SUMofprecipitationfrom2004to2023_2').style['mix-blend-mode'] = 'normal';
+        var layer_SUMofprecipitationfrom2004to2023_2 = new L.geoJson(json_SUMofprecipitationfrom2004to2023_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_SUMofprecipitationfrom2004to2023_2',
+            layerName: 'layer_SUMofprecipitationfrom2004to2023_2',
+            pane: 'pane_SUMofprecipitationfrom2004to2023_2',
+            onEachFeature: pop_SUMofprecipitationfrom2004to2023_2,
+            style: style_SUMofprecipitationfrom2004to2023_2_0,
+        });
+        bounds_group.addLayer(layer_SUMofprecipitationfrom2004to2023_2);
+        map.addLayer(layer_SUMofprecipitationfrom2004to2023_2);
+        function pop_PuntlandRegions_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id'] !== null ? autolinker.link(feature.properties['Id'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Region_N</th>\
+                        <td class="visible-with-data" id="Region_N">' + (feature.properties['Region_N'] !== null ? autolinker.link(feature.properties['Region_N'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Population</th>\
+                        <td class="visible-with-data" id="Population">' + (feature.properties['Population'] !== null ? autolinker.link(feature.properties['Population'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function style_PuntlandRegions_3_0() {
+            return {
+                pane: 'pane_PuntlandRegions_3',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_PuntlandRegions_3');
+        map.getPane('pane_PuntlandRegions_3').style.zIndex = 403;
+        map.getPane('pane_PuntlandRegions_3').style['mix-blend-mode'] = 'normal';
+        var layer_PuntlandRegions_3 = new L.geoJson(json_PuntlandRegions_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PuntlandRegions_3',
+            layerName: 'layer_PuntlandRegions_3',
+            pane: 'pane_PuntlandRegions_3',
+            onEachFeature: pop_PuntlandRegions_3,
+            style: style_PuntlandRegions_3_0,
+        });
+        bounds_group.addLayer(layer_PuntlandRegions_3);
+        map.addLayer(layer_PuntlandRegions_3);
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'<img src="legend/PuntlandRegions_3.png" /> Puntland Regions': layer_PuntlandRegions_3,'SUM of precipitation from 2004 to 2023<br /><table><tr><td style="text-align: center;"><img src="legend/SUMofprecipitationfrom2004to2023_2_133427300.png" /></td><td>1,334 - 2,730</td></tr><tr><td style="text-align: center;"><img src="legend/SUMofprecipitationfrom2004to2023_2_273137391.png" /></td><td>2,731 - 3,739</td></tr><tr><td style="text-align: center;"><img src="legend/SUMofprecipitationfrom2004to2023_2_374045412.png" /></td><td>3,740 - 4,541</td></tr><tr><td style="text-align: center;"><img src="legend/SUMofprecipitationfrom2004to2023_2_454254463.png" /></td><td>4,542 - 5,446</td></tr><tr><td style="text-align: center;"><img src="legend/SUMofprecipitationfrom2004to2023_2_544779294.png" /></td><td>5,447 - 7,929</td></tr></table>': layer_SUMofprecipitationfrom2004to2023_2,'<img src="legend/Regional_boundary_1.png" /> Regional_boundary': layer_Regional_boundary_1,'<img src="legend/Africa_0.png" /> Africa': layer_Africa_0,}).addTo(map);
+        setBounds();
+        var i = 0;
+        layer_PuntlandRegions_3.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Region_N'] !== null?String('<div style="color: #ffffff; font-size: 16pt; font-weight: bold; font-family: \'Times New Roman\', sans-serif;">' + layer.feature.properties['Region_N']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_PuntlandRegions_3'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        resetLabels([layer_PuntlandRegions_3]);
+        map.on("zoomend", function(){
+            resetLabels([layer_PuntlandRegions_3]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_PuntlandRegions_3]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_PuntlandRegions_3]);
+        });
+        </script>
+    </body>
+</html>
